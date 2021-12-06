@@ -90,16 +90,41 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  const int PIN_COUNT = 4;
+  uint16_t pins[4] = {GPIO_PIN_10, GPIO_PIN_11, GPIO_PIN_12, GPIO_PIN_13};
+  uint16_t current = 0;
+  void disable_all() {
+	  for(int i = 0; i < PIN_COUNT; i++){
+		  HAL_GPIO_TogglePin(GPIOA, pins[i]);
+	  }
+  }
+  disable_all();
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_13);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(500);
+		if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15) == GPIO_PIN_SET) {
+			HAL_GPIO_WritePin(GPIOA, pins[current], GPIO_PIN_RESET);
+			uint16_t reset = current == 0 ? PIN_COUNT - 1 : current - 1;
+			HAL_GPIO_WritePin(GPIOA, pins[reset], GPIO_PIN_SET);
+			current++;
+			if(current == PIN_COUNT) {
+				current = 0;
+			}
+			HAL_Delay(300);
+		}
+		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14) == GPIO_PIN_SET) {
+			for(int i = 0; i <= PIN_COUNT; i++){
+				if(i == PIN_COUNT) {
+					disable_all();
+					break;
+				}
+				if(HAL_GPIO_ReadPin(GPIOA, pins[i]) == GPIO_PIN_SET){
+					HAL_GPIO_WritePin(GPIOA, pins[i], GPIO_PIN_RESET);
+					break;
+				}
+			}
+
+			HAL_Delay(300);
+		}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
