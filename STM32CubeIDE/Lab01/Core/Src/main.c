@@ -47,6 +47,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -84,22 +85,22 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
+	const int PIN_COUNT = 4;
+	uint16_t pins[4] = { GPIO_PIN_10, GPIO_PIN_9, GPIO_PIN_8, GPIO_PIN_7 };
+	for (int i = 0; i < PIN_COUNT; i++) {
+		HAL_GPIO_TogglePin(GPIOA, pins[i]);
+	}
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_13);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -107,7 +108,8 @@ int main(void)
   /* USER CODE END 3 */
 }
 
-/**
+/**	const int PIN_COUNT = 4;
+	uint16_t pins[4] = {GPIO_PIN_10, GPIO_PIN_9, GPIO_PIN_8, GPIO_PIN_7};
   * @brief System Clock Configuration
   * @retval None
   */
@@ -142,7 +144,39 @@ void SystemClock_Config(void)
   }
 }
 
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* EXTI15_10_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+}
+
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	const int PIN_COUNT = 4;
+	uint16_t pins[4] = { GPIO_PIN_10, GPIO_PIN_9, GPIO_PIN_8, GPIO_PIN_7 };
+	if (GPIO_Pin == GPIO_PIN_12 && HAL_GPIO_ReadPin(GPIOA, GPIO_Pin) == GPIO_PIN_SET) {
+		for (int i = 0; i < PIN_COUNT; i++) {
+			if (HAL_GPIO_ReadPin(GPIOA, pins[i]) == GPIO_PIN_SET) {
+				HAL_GPIO_WritePin(GPIOA, pins[i], GPIO_PIN_RESET);
+				break;
+			}
+		}
+	}
+	if (GPIO_Pin == GPIO_PIN_11 && HAL_GPIO_ReadPin(GPIOA, GPIO_Pin) == GPIO_PIN_SET) {
+		for (int i = PIN_COUNT-1; i >= 0; i--) {
+			if (HAL_GPIO_ReadPin(GPIOA, pins[i]) == GPIO_PIN_RESET) {
+				HAL_GPIO_WritePin(GPIOA, pins[i], GPIO_PIN_SET);
+				break;
+			}
+		}
+	}
+}
 
 /* USER CODE END 4 */
 
