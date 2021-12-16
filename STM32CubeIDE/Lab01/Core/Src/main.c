@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -84,22 +85,19 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+  HAL_TIM_Base_Start_IT(&htim1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_13);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_12);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
-	  HAL_Delay(500);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -143,7 +141,28 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+int serv1= 0;
+int serv2 = 500;
+int serv3 = 0;
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if (htim->Instance == TIM1) {
+		if (serv1 == 500)
+			serv1 = 0;
+		if (serv2 == 0)
+			serv1 = 500;
+		if (serv3 == 500)
+			serv1 = 0;
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, serv1);
+		HAL_Delay(2);
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, serv2);
+		HAL_Delay(1);
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, serv3);
+		HAL_Delay(3);
+		serv1 += 10;
+		serv2 -= 30;
+		serv3 += 50;
+	}
+}
 /* USER CODE END 4 */
 
 /**
